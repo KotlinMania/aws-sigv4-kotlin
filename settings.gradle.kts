@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "aws-sigv4-kotlin"
+
