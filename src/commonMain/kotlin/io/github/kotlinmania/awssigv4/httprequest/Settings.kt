@@ -16,27 +16,20 @@ data class SigningSettings(
     // the path prior to checking the signature, requiring clients to actually _double-encode_
     // the URI in creating the canonical request in order to pass a signature check.
     var percentEncodingMode: PercentEncodingMode = PercentEncodingMode.Double,
-
     // Add an additional checksum header
     var payloadChecksumKind: PayloadChecksumKind = PayloadChecksumKind.NoHeader,
-
     // Where to put the signature
     var signatureLocation: SignatureLocation = SignatureLocation.Headers,
-
     // For presigned requests, how long the presigned request is valid for
     var expiresIn: Duration? = null,
-
     // Headers that should be excluded from the signing process
     var excludedHeaders: List<String>? = defaultExcludedHeaders(),
-
     // Specifies whether the absolute path component of the URI should be normalized during signing.
     var uriPathNormalizationMode: UriPathNormalizationMode = UriPathNormalizationMode.Enabled,
-
     // Some services require X-Amz-Security-Token to be included in the
     // canonical request. Other services require only it to be added after
     // calculating the signature.
     var sessionTokenMode: SessionTokenMode = SessionTokenMode.Include,
-
     // Some services require an alternative session token header or query param instead of
     // `x-amz-security-token` or `X-Amz-Security-Token`.
     var sessionTokenNameOverride: String? = null,
@@ -49,16 +42,17 @@ data class SigningSettings(
 // JS SDK: https://github.com/aws/aws-sdk-js/blob/master/lib/signers/v4.js#L191
 // There is no single source of truth for these available, so this uses the minimum common set of the excluded options.
 // Build the list every time, because SigningSettings holds a mutable list (which cannot be a top-level constant).
-private fun defaultExcludedHeaders(): List<String> = listOf(
-    // This header is calculated as part of the signing process, so if it's present, discard it
-    "authorization",
-    // Changes when sent by proxy
-    "user-agent",
-    // Changes based on the request from the client
-    HEADER_NAME_X_RAY_TRACE_ID,
-    // Hop by hop header, can be erased by Cloudfront
-    "transfer-encoding",
-)
+private fun defaultExcludedHeaders(): List<String> =
+    listOf(
+        // This header is calculated as part of the signing process, so if it's present, discard it
+        "authorization",
+        // Changes when sent by proxy
+        "user-agent",
+        // Changes based on the request from the client
+        HEADER_NAME_X_RAY_TRACE_ID,
+        // Hop by hop header, can be erased by Cloudfront
+        "transfer-encoding",
+    )
 
 // HTTP payload checksum type
 enum class PayloadChecksumKind {
@@ -95,7 +89,9 @@ enum class UriPathNormalizationMode {
     Enabled,
 
     // Don't normalize the URI path (S3, for example, rejects normalized paths in some instances)
-    Disabled;
+    Disabled,
+
+    ;
 
     companion object {
         fun fromBoolean(value: Boolean): UriPathNormalizationMode =

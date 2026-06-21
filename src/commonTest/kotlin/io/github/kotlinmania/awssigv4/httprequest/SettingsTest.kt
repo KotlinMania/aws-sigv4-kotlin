@@ -27,9 +27,12 @@ class SettingsTest {
         assertNull(settings.sessionTokenNameOverride)
 
         val excluded = settings.excludedHeaders
-        assertTrue(excluded != null && excluded.containsAll(
-            listOf("authorization", "user-agent", "x-amzn-trace-id", "transfer-encoding")
-        ))
+        assertTrue(
+            excluded != null &&
+                excluded.containsAll(
+                    listOf("authorization", "user-agent", "x-amzn-trace-id", "transfer-encoding"),
+                ),
+        )
     }
 
     @Test
