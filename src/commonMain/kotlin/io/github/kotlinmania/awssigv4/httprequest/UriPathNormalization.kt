@@ -36,8 +36,14 @@ private fun normalizePathSegment(uriPath: String): String {
         when (segment) {
             // Segments that are empty or contain only a single period should not be preserved.
             "", "." -> {}
-            ".." -> if (normalized.isNotEmpty()) normalized.removeAt(normalized.lastIndex)
-            else -> normalized.add(segment)
+
+            ".." -> {
+                if (normalized.isNotEmpty()) normalized.removeAt(normalized.lastIndex)
+            }
+
+            else -> {
+                normalized.add(segment)
+            }
         }
     }
 
