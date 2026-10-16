@@ -66,3 +66,7 @@ DerivedData/
 *.xcuserstate
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
+
+# npm install output; this repo uses yarn via the Kotlin Gradle plugin
+node_modules/
+package-lock.json
