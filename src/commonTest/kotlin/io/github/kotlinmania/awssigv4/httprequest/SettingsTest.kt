@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// port-lint: ignore
 // Sanity tests for the Kotlin port of http_request/settings.rs. The upstream
 // settings.rs has no #[test] blocks; these tests pin the documented default
 // shape of SigningSettings so unintended drift is caught.

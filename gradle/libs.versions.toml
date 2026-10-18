@@ -10,11 +10,16 @@ ktlint = "14.2.0"
 kotlinxBenchmark = "0.5.0"
 awsCredentialTypes = "0.1.1"
 bytes = "0.2.1"
+hmac = "0.1.2"
 http = "0.2.1"
 p256 = "0.1.0"
 prettyAssertions = "0.1.0"
+serde = "0.1.11"
+serdeJson = "0.1.1"
 sha2 = "0.1.0"
-zeroize = "0.1.0"
+time = "0.1.0"
+tracing = "0.1.0"
+zeroize = "0.1.1"
 ktlintEngine = "1.8.0"
 
 [plugins]
@@ -35,10 +40,15 @@ collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-im
 kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinxBenchmark" }
 aws-credential-types-kotlin = { module = "io.github.kotlinmania:aws-credential-types-kotlin", version.ref = "awsCredentialTypes" }
 bytes-kotlin = { module = "io.github.kotlinmania:bytes-kotlin", version.ref = "bytes" }
+hmac-kotlin = { module = "io.github.kotlinmania:hmac-kotlin", version.ref = "hmac" }
 http-kotlin = { module = "io.github.kotlinmania:http-kotlin", version.ref = "http" }
 p256-kotlin = { module = "io.github.kotlinmania:p256-kotlin", version.ref = "p256" }
 pretty-assertions-kotlin = { module = "io.github.kotlinmania:pretty-assertions-kotlin", version.ref = "prettyAssertions" }
+serde-kotlin = { module = "io.github.kotlinmania:serde-kotlin", version.ref = "serde" }
+serde-json-kotlin = { module = "io.github.kotlinmania:serde-json-kotlin", version.ref = "serdeJson" }
 sha2-kotlin = { module = "io.github.kotlinmania:sha2-kotlin", version.ref = "sha2" }
+time-kotlin = { module = "io.github.kotlinmania:time-kotlin", version.ref = "time" }
+tracing-kotlin = { module = "io.github.kotlinmania:tracing-kotlin", version.ref = "tracing" }
 zeroize-kotlin = { module = "io.github.kotlinmania:zeroize-kotlin", version.ref = "zeroize" }
 
 [bundles]
@@ -50,11 +60,16 @@ aws-sigv4-commonMain = [
   "collections-immutable",
   "aws-credential-types-kotlin",
   "bytes-kotlin",
+  "hmac-kotlin",
   "http-kotlin",
   "p256-kotlin",
   "sha2-kotlin",
+  "time-kotlin",
+  "tracing-kotlin",
   "zeroize-kotlin",
 ]
 aws-sigv4-commonTest = [
   "pretty-assertions-kotlin",
+  "serde-kotlin",
+  "serde-json-kotlin",
 ]
