@@ -6,6 +6,9 @@
 // port-lint: source http_request/settings.rs
 package io.github.kotlinmania.awssigv4.httprequest
 
+import io.github.kotlinmania.http.header.AUTHORIZATION
+import io.github.kotlinmania.http.header.TRANSFER_ENCODING
+import io.github.kotlinmania.http.header.USER_AGENT
 import kotlin.time.Duration
 
 private const val HEADER_NAME_X_RAY_TRACE_ID: String = "x-amzn-trace-id"
@@ -45,13 +48,13 @@ data class SigningSettings(
 private fun defaultExcludedHeaders(): List<String> =
     listOf(
         // This header is calculated as part of the signing process, so if it's present, discard it
-        "authorization",
+        AUTHORIZATION.asStr(),
         // Changes when sent by proxy
-        "user-agent",
+        USER_AGENT.asStr(),
         // Changes based on the request from the client
         HEADER_NAME_X_RAY_TRACE_ID,
         // Hop by hop header, can be erased by Cloudfront
-        "transfer-encoding",
+        TRANSFER_ENCODING.asStr(),
     )
 
 // HTTP payload checksum type

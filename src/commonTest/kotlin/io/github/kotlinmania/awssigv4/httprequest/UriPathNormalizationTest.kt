@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// port-lint: source http_request/uri_path_normalization.rs
+// port-lint: tests http_request/uri_path_normalization.rs
 package io.github.kotlinmania.awssigv4.httprequest
 
 import kotlin.test.Test
