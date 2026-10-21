@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import groovy.json.JsonSlurper
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -9,6 +11,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugins.signing.Sign
 import org.gradle.process.ExecOperations
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -55,7 +58,7 @@ val commonMainDependencyBundle =
         .getByType(VersionCatalogsExtension::class.java)
         .named("libs")
         .findBundle(commonMainBundleName)
-        .orElseThrow { GradleException("Missing libs bundle '$commonMainBundleName'") }
+        .orElseThrow { GradleException("Missing libs bundle '$commonMainBundleName'") }!!
 
 fun csvProperty(name: String): Set<String> =
     providers
