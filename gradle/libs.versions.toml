@@ -17,7 +17,7 @@ prettyAssertions = "0.1.0"
 serde = "0.1.11"
 serdeJson = "0.1.1"
 sha2 = "0.1.0"
-time = "0.1.0"
+time = "0.2.1"
 tracing = "0.1.0"
 zeroize = "0.1.1"
 ktlintEngine = "1.8.0"
@@ -63,6 +63,7 @@ aws-sigv4-commonMain = [
   "hmac-kotlin",
   "http-kotlin",
   "p256-kotlin",
+  "serde-kotlin",
   "sha2-kotlin",
   "time-kotlin",
   "tracing-kotlin",
