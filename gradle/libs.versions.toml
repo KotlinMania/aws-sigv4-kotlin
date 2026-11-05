@@ -7,9 +7,10 @@ collectionsImmutable = "0.5.2"
 androidKmp = "9.4.1"
 detekt = "2.0.0-alpha.6"
 ktlint = "14.2.0"
+ktlintEngine = "1.8.0"
 kotlinxBenchmark = "0.5.0"
 awsCredentialTypes = "0.1.1"
-bytes = "0.2.1"
+bytes = "0.2.2"
 hmac = "0.1.2"
 http = "0.2.1"
 p256 = "0.1.0"
@@ -20,9 +21,9 @@ sha2 = "0.1.0"
 time = "0.2.1"
 tracing = "0.1.0"
 zeroize = "0.1.1"
-ktlintEngine = "1.8.0"
 
 [plugins]
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidKmp" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-kmp = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidKmp" }
@@ -54,9 +55,6 @@ zeroize-kotlin = { module = "io.github.kotlinmania:zeroize-kotlin", version.ref 
 [bundles]
 aws-sigv4-commonMain = [
   "kotlinx-coroutines-core",
-  "kotlinx-serialization-core",
-  "kotlinx-serialization-json",
-  "kotlinx-datetime",
   "collections-immutable",
   "aws-credential-types-kotlin",
   "bytes-kotlin",
