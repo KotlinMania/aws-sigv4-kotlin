@@ -10,13 +10,14 @@ import io.github.kotlinmania.http.header.AUTHORIZATION
 import io.github.kotlinmania.http.header.TRANSFER_ENCODING
 import io.github.kotlinmania.http.header.USER_AGENT
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private const val HEADER_NAME_X_RAY_TRACE_ID: String = "x-amzn-trace-id"
 
-// HTTP-specific signing settings
+/** HTTP-specific signing settings. */
 data class SigningSettings(
     // Specifies how to encode the request URL when signing. Some services do not decode
-    // the path prior to checking the signature, requiring clients to actually _double-encode_
+    // the path prior to checking the signature, requiring clients to double-encode
     // the URI in creating the canonical request in order to pass a signature check.
     var percentEncodingMode: PercentEncodingMode = PercentEncodingMode.Double,
     // Add an additional checksum header
@@ -34,9 +35,30 @@ data class SigningSettings(
     // calculating the signature.
     var sessionTokenMode: SessionTokenMode = SessionTokenMode.Include,
     // Some services require an alternative session token header or query param instead of
-    // `x-amz-security-token` or `X-Amz-Security-Token`.
+    // x-amz-security-token or X-Amz-Security-Token.
     var sessionTokenNameOverride: String? = null,
-)
+) {
+    /** Returns [expiresIn] expressed in whole seconds if set. */
+    fun expiresInSeconds(): Long? {
+        val current = expiresIn
+        return current?.inWholeSeconds
+    }
+
+    /** Sets [expiresIn] from a duration in whole seconds. */
+    fun setExpiresInSeconds(secondsValue: Long) {
+        expiresIn = secondsValue.seconds
+    }
+
+    /** Clears [expiresIn] to null. */
+    fun clearExpiresIn() {
+        expiresIn = null
+    }
+
+    companion object {
+        /** Creates a new [SigningSettings] populated with default values. */
+        fun default(): SigningSettings = SigningSettings()
+    }
+}
 
 // Headers that are potentially altered by proxies or as a part of standard service operations.
 // Reference:
@@ -44,10 +66,10 @@ data class SigningSettings(
 // Java SDK: https://github.com/aws/aws-sdk-java-v2/blob/master/core/auth/src/main/java/software/amazon/awssdk/auth/signer/internal/AbstractAws4Signer.java#L70
 // JS SDK: https://github.com/aws/aws-sdk-js/blob/master/lib/signers/v4.js#L191
 // There is no single source of truth for these available, so this uses the minimum common set of the excluded options.
-// Build the list every time, because SigningSettings holds a mutable list (which cannot be a top-level constant).
+// Build the list every time, because SigningSettings holds a configurable list.
 private fun defaultExcludedHeaders(): List<String> =
     listOf(
-        // This header is calculated as part of the signing process, so if it's present, discard it
+        // This header is calculated as part of the signing process, so if it is present, discard it
         AUTHORIZATION.asStr(),
         // Changes when sent by proxy
         USER_AGENT.asStr(),
@@ -57,66 +79,78 @@ private fun defaultExcludedHeaders(): List<String> =
         TRANSFER_ENCODING.asStr(),
     )
 
-// HTTP payload checksum type
+/** HTTP payload checksum type. */
 enum class PayloadChecksumKind {
-    // Add x-amz-checksum-sha256 to the canonical request
-    //
-    // This setting is required for S3
+    /**
+     * Add x-amz-content-sha256 to the canonical request.
+     *
+     * This setting is required for S3.
+     */
     XAmzSha256,
 
-    // Do not add an additional header when creating the canonical request
-    //
-    // This is "normal mode" and will work for services other than S3
+    /**
+     * Do not add an additional header when creating the canonical request.
+     *
+     * This is normal mode and will work for services other than S3.
+     */
     NoHeader,
 }
 
-// Config value to specify how to encode the request URL when signing.
-//
-// We assume the URI will be encoded _once_ prior to transmission. Some services
-// do not decode the path prior to checking the signature, requiring clients to actually
-// _double-encode_ the URI in creating the canonical request in order to pass a signature check.
+/**
+ * Config value to specify how to encode the request URL when signing.
+ *
+ * We assume the URI will be encoded once prior to transmission. Some services
+ * do not decode the path prior to checking the signature, requiring clients to
+ * double-encode the URI in creating the canonical request in order to pass a signature check.
+ */
 enum class PercentEncodingMode {
-    // Re-encode the resulting URL (e.g. %30 becomes `%2530)
+    /** Re-encode the resulting URL (for example `%30` becomes `%2530`). */
     Double,
 
-    // Take the resulting URL as-is
+    /** Take the resulting URL as-is. */
     Single,
 }
 
-// Config value to specify whether the canonical request's URI path should be normalized.
-// https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
-//
-// URI path normalization is performed based on https://www.rfc-editor.org/rfc/rfc3986.
+/**
+ * Config value to specify whether the canonical request URI path should be normalized.
+ * https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
+ *
+ * URI path normalization is performed based on https://www.rfc-editor.org/rfc/rfc3986.
+ */
 enum class UriPathNormalizationMode {
-    // Normalize the URI path according to RFC3986
+    /** Normalize the URI path according to RFC3986. */
     Enabled,
 
-    // Don't normalize the URI path (S3, for example, rejects normalized paths in some instances)
+    /** Do not normalize the URI path (S3, for example, rejects normalized paths in some instances). */
     Disabled,
 
     ;
 
     companion object {
-        fun fromBoolean(value: Boolean): UriPathNormalizationMode =
+        fun from(value: Boolean): UriPathNormalizationMode =
             if (value) Enabled else Disabled
+
+        fun fromBoolean(value: Boolean): UriPathNormalizationMode = from(value)
     }
 }
 
-// Config value to specify whether X-Amz-Security-Token should be part of the canonical request.
-// http://docs.aws.amazon.com/general/latest/gr/sigv4-add-signature-to-request.html#temporary-security-credentials
+/**
+ * Config value to specify whether X-Amz-Security-Token should be part of the canonical request.
+ * http://docs.aws.amazon.com/general/latest/gr/sigv4-add-signature-to-request.html#temporary-security-credentials
+ */
 enum class SessionTokenMode {
-    // Include in the canonical request before calculating the signature.
+    /** Include in the canonical request before calculating the signature. */
     Include,
 
-    // Exclude in the canonical request.
+    /** Exclude in the canonical request. */
     Exclude,
 }
 
-// Where to place signing values in the HTTP request
+/** Where to place signing values in the HTTP request. */
 enum class SignatureLocation {
-    // Place the signature in the request headers
+    /** Place the signature in the request headers. */
     Headers,
 
-    // Place the signature in the request query parameters
+    /** Place the signature in the request query parameters. */
     QueryParams,
 }

@@ -6,6 +6,14 @@
 package io.github.kotlinmania.awssigv4
 
 /**
+ * Decomposed components of a [SigningOutput].
+ */
+data class SigningOutputParts<T>(
+    val output: T,
+    val signature: String,
+)
+
+/**
  * Container for the signed output and the signature.
  *
  * This is returned by signing functions, and the signed output will be
@@ -22,12 +30,14 @@ data class SigningOutput<T>(
     /** Returns the signature as a lowercase hex string. */
     fun signature(): String = signature
 
-    /** Decomposes the [SigningOutput] into a pair of the signed output and the signature. */
-    fun intoParts(): Pair<T, String> = Pair(output, signature)
+    /** Decomposes the [SigningOutput] into its signed output and signature parts. */
+    fun intoParts(): SigningOutputParts<T> = SigningOutputParts(output, signature)
 
     companion object {
         /** Creates a new [SigningOutput]. */
-        fun <T> new(output: T, signature: String): SigningOutput<T> =
-            SigningOutput(output, signature)
+        fun <T> new(
+            output: T,
+            signature: String,
+        ): SigningOutput<T> = SigningOutput(output, signature)
     }
 }

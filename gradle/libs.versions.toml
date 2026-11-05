@@ -9,8 +9,10 @@ detekt = "2.0.0-alpha.6"
 ktlint = "14.2.0"
 ktlintEngine = "1.8.0"
 kotlinxBenchmark = "0.5.0"
+androidxTestRunner = "1.7.0"
 awsCredentialTypes = "0.1.1"
 bytes = "0.2.2"
+digest = "0.1.0"
 hmac = "0.1.2"
 http = "0.2.1"
 p256 = "0.1.0"
@@ -39,8 +41,10 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "collectionsImmutable" }
 kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinxBenchmark" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 aws-credential-types-kotlin = { module = "io.github.kotlinmania:aws-credential-types-kotlin", version.ref = "awsCredentialTypes" }
 bytes-kotlin = { module = "io.github.kotlinmania:bytes-kotlin", version.ref = "bytes" }
+digest-kotlin = { module = "io.github.kotlinmania:digest-kotlin", version.ref = "digest" }
 hmac-kotlin = { module = "io.github.kotlinmania:hmac-kotlin", version.ref = "hmac" }
 http-kotlin = { module = "io.github.kotlinmania:http-kotlin", version.ref = "http" }
 p256-kotlin = { module = "io.github.kotlinmania:p256-kotlin", version.ref = "p256" }
@@ -53,11 +57,14 @@ tracing-kotlin = { module = "io.github.kotlinmania:tracing-kotlin", version.ref 
 zeroize-kotlin = { module = "io.github.kotlinmania:zeroize-kotlin", version.ref = "zeroize" }
 
 [bundles]
+aws-sigv4-commonMainApi = [
+  "aws-credential-types-kotlin",
+]
 aws-sigv4-commonMain = [
   "kotlinx-coroutines-core",
   "collections-immutable",
-  "aws-credential-types-kotlin",
   "bytes-kotlin",
+  "digest-kotlin",
   "hmac-kotlin",
   "http-kotlin",
   "p256-kotlin",

@@ -8,8 +8,10 @@ package io.github.kotlinmania.awssigv4.httprequest
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class ErrorTest {
     @Test
@@ -17,6 +19,8 @@ class ErrorTest {
         val err = SigningError.unsupportedIdentityType()
         assertEquals("only 'AWS credentials' are supported for signing", err.message)
         assertEquals("only 'AWS credentials' are supported for signing", err.toString())
+        assertFalse(err.hasSource())
+        assertNull(err.sourceMessage())
         assertNull(err.cause)
     }
 
@@ -26,6 +30,8 @@ class ErrorTest {
         val signingErr = SigningError.from(canonicalErr)
         assertEquals("failed to create canonical request", signingErr.message)
         assertEquals("failed to create canonical request", signingErr.toString())
+        assertTrue(signingErr.hasSource())
+        assertEquals("only AWS credentials are supported for signing", signingErr.sourceMessage())
         assertSame(canonicalErr, signingErr.cause)
     }
 
@@ -35,7 +41,7 @@ class ErrorTest {
         assertEquals("only AWS credentials are supported for signing", unsupported.message)
         assertNull(unsupported.cause)
 
-        val dummyCause = IllegalArgumentException("boom")
+        val dummyCause = "boom"
 
         val invalidHeaderName = CanonicalRequestError.invalidHeaderName(dummyCause)
         assertEquals("invalid header name", invalidHeaderName.message)

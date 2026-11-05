@@ -16,40 +16,34 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Instant
 
-class ParseError(
-    message: String,
-) : Exception("failed to parse time: $message")
-
 internal object TestParsers {
     /** Parses `YYYYMMDD'T'HHMMSS'Z'` formatted dates into an [Instant]. */
     fun parseDateTime(dateTimeStr: String): Instant {
-        try {
-            val year = dateTimeStr.substring(0, 4).toInt()
-            val month = Month.tryFrom(dateTimeStr.substring(4, 6).toInt()).getOrThrow()
-            val day = dateTimeStr.substring(6, 8).toInt()
-            val hour = dateTimeStr.substring(9, 11).toInt()
-            val minute = dateTimeStr.substring(11, 13).toInt()
-            val second = dateTimeStr.substring(13, 15).toInt()
-            val date = Date.fromCalendarDate(year, month, day).getOrThrow()
-            val time = Time.fromHms(hour, minute, second).getOrThrow()
-            return PrimitiveDateTime.new(date, time).assumeUtc().toSystemTime()
-        } catch (e: Exception) {
-            throw ParseError(e.message ?: "unknown")
+        require(dateTimeStr.length == 16 && dateTimeStr[8] == 'T' && dateTimeStr[15] == 'Z') {
+            "failed to parse time: $dateTimeStr"
         }
+        val year = checkNotNull(dateTimeStr.substring(0, 4).toIntOrNull()) { "invalid year: $dateTimeStr" }
+        val monthNum = checkNotNull(dateTimeStr.substring(4, 6).toIntOrNull()) { "invalid month: $dateTimeStr" }
+        val month = Month.tryFrom(monthNum).getOrThrow()
+        val day = checkNotNull(dateTimeStr.substring(6, 8).toIntOrNull()) { "invalid day: $dateTimeStr" }
+        val hour = checkNotNull(dateTimeStr.substring(9, 11).toIntOrNull()) { "invalid hour: $dateTimeStr" }
+        val minute = checkNotNull(dateTimeStr.substring(11, 13).toIntOrNull()) { "invalid minute: $dateTimeStr" }
+        val second = checkNotNull(dateTimeStr.substring(13, 15).toIntOrNull()) { "invalid second: $dateTimeStr" }
+        val date = Date.fromCalendarDate(year, month, day).getOrThrow()
+        val time = Time.fromHms(hour, minute, second).getOrThrow()
+        return PrimitiveDateTime.new(date, time).assumeUtc().toSystemTime()
     }
 
     /** Parses `YYYYMMDD` formatted dates into an [Instant]. */
     fun parseDate(dateStr: String): Instant {
-        try {
-            val year = dateStr.substring(0, 4).toInt()
-            val month = Month.tryFrom(dateStr.substring(4, 6).toInt()).getOrThrow()
-            val day = dateStr.substring(6, 8).toInt()
-            val date = Date.fromCalendarDate(year, month, day).getOrThrow()
-            val time = Time.fromHms(0, 0, 0).getOrThrow()
-            return PrimitiveDateTime.new(date, time).assumeUtc().toSystemTime()
-        } catch (e: Exception) {
-            throw ParseError(e.message ?: "unknown")
-        }
+        require(dateStr.length == 8) { "failed to parse date: $dateStr" }
+        val year = checkNotNull(dateStr.substring(0, 4).toIntOrNull()) { "invalid year: $dateStr" }
+        val monthNum = checkNotNull(dateStr.substring(4, 6).toIntOrNull()) { "invalid month: $dateStr" }
+        val month = Month.tryFrom(monthNum).getOrThrow()
+        val day = checkNotNull(dateStr.substring(6, 8).toIntOrNull()) { "invalid day: $dateStr" }
+        val date = Date.fromCalendarDate(year, month, day).getOrThrow()
+        val time = Time.fromHms(0, 0, 0).getOrThrow()
+        return PrimitiveDateTime.new(date, time).assumeUtc().toSystemTime()
     }
 }
 
