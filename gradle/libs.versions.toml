@@ -7,9 +7,12 @@ collectionsImmutable = "0.5.2"
 androidKmp = "9.4.1"
 detekt = "2.0.0-alpha.6"
 ktlint = "14.2.0"
+ktlintEngine = "1.8.0"
 kotlinxBenchmark = "0.5.0"
+androidxTestRunner = "1.7.0"
 awsCredentialTypes = "0.1.1"
-bytes = "0.2.1"
+bytes = "0.2.2"
+digest = "0.1.0"
 hmac = "0.1.2"
 http = "0.2.1"
 p256 = "0.1.0"
@@ -20,9 +23,9 @@ sha2 = "0.1.0"
 time = "0.2.1"
 tracing = "0.1.0"
 zeroize = "0.1.1"
-ktlintEngine = "1.8.0"
 
 [plugins]
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidKmp" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-kmp = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidKmp" }
@@ -38,8 +41,10 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "collectionsImmutable" }
 kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinxBenchmark" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 aws-credential-types-kotlin = { module = "io.github.kotlinmania:aws-credential-types-kotlin", version.ref = "awsCredentialTypes" }
 bytes-kotlin = { module = "io.github.kotlinmania:bytes-kotlin", version.ref = "bytes" }
+digest-kotlin = { module = "io.github.kotlinmania:digest-kotlin", version.ref = "digest" }
 hmac-kotlin = { module = "io.github.kotlinmania:hmac-kotlin", version.ref = "hmac" }
 http-kotlin = { module = "io.github.kotlinmania:http-kotlin", version.ref = "http" }
 p256-kotlin = { module = "io.github.kotlinmania:p256-kotlin", version.ref = "p256" }
@@ -52,14 +57,14 @@ tracing-kotlin = { module = "io.github.kotlinmania:tracing-kotlin", version.ref 
 zeroize-kotlin = { module = "io.github.kotlinmania:zeroize-kotlin", version.ref = "zeroize" }
 
 [bundles]
+aws-sigv4-commonMainApi = [
+  "aws-credential-types-kotlin",
+]
 aws-sigv4-commonMain = [
   "kotlinx-coroutines-core",
-  "kotlinx-serialization-core",
-  "kotlinx-serialization-json",
-  "kotlinx-datetime",
   "collections-immutable",
-  "aws-credential-types-kotlin",
   "bytes-kotlin",
+  "digest-kotlin",
   "hmac-kotlin",
   "http-kotlin",
   "p256-kotlin",
