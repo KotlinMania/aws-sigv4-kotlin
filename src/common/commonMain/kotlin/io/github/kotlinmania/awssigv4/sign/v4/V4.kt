@@ -9,33 +9,21 @@ package io.github.kotlinmania.awssigv4.sign.v4
 import io.github.kotlinmania.awscredentialtypes.Credentials
 import io.github.kotlinmania.awssigv4.SigningIdentity
 import io.github.kotlinmania.awssigv4.formatDate
+import io.github.kotlinmania.hmac.ClosureBlockCore
 import io.github.kotlinmania.hmac.Hmac
-import io.github.kotlinmania.hmac.registerHasher
 import io.github.kotlinmania.sha2.Sha256
 import kotlin.time.Instant
 
 private val LOWER_HEX_CHARS = "0123456789abcdef".toCharArray()
 private const val HMAC_256: String = "AWS4-HMAC-SHA256"
 
-private val sha256Registration: Unit by lazy {
-    val probe = Sha256.new()
-    registerHasher(
-        type = Sha256::class,
-        blockSize = probe.blockSize,
-        outputSize = probe.outputSize,
+private fun newHmacSha256(key: ByteArray): Hmac<ClosureBlockCore> =
+    Hmac.fromDigest(
+        blockSize = 64,
+        outputSize = 32,
         algName = "Sha256",
-        create = { Sha256.new() },
-        update = { hasher, bytes -> hasher.update(bytes) },
-        finalize = { hasher -> hasher.finalize() },
-        reset = { hasher -> hasher.reset() },
-        digest = { bytes -> Sha256.digest(bytes) },
-    )
-}
-
-private fun newHmacSha256(key: ByteArray): Hmac<Sha256> {
-    sha256Registration
-    return Hmac.newFromSlice(Sha256::class, key).getOrThrow()
-}
+        key = key,
+    ) { bytes -> Sha256.digest(bytes) }
 
 internal fun lowerHexEncode(bytes: ByteArray): String {
     val sb = StringBuilder(bytes.size * 2)

@@ -36,6 +36,7 @@ internal object CanonicalParamConstants {
 }
 
 internal const val HMAC_256: String = "AWS4-HMAC-SHA256"
+internal const val ECDSA_256: String = "AWS4-ECDSA-P256-SHA256"
 
 private const val UNSIGNED_PAYLOAD: String = "UNSIGNED-PAYLOAD"
 private const val STREAMING_UNSIGNED_PAYLOAD_TRAILER: String = "STREAMING-UNSIGNED-PAYLOAD-TRAILER"
@@ -654,6 +655,24 @@ internal data class StringToSign(
                 service = service,
                 hashedCreq = hashedCreq,
                 signatureVersion = SignatureVersion.V4,
+            )
+        }
+
+        fun newV4a(
+            time: Instant,
+            regionSet: String,
+            service: String,
+            hashedCreq: String,
+        ): StringToSign {
+            val scope = SigningScope(time = time, region = regionSet, service = service)
+            return StringToSign(
+                algorithm = ECDSA_256,
+                scope = scope,
+                time = time,
+                region = regionSet,
+                service = service,
+                hashedCreq = hashedCreq,
+                signatureVersion = SignatureVersion.V4a,
             )
         }
     }

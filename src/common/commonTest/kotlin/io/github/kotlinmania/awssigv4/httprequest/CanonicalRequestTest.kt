@@ -8,11 +8,13 @@ package io.github.kotlinmania.awssigv4.httprequest
 
 import io.github.kotlinmania.awssigv4.SigningIdentity
 import io.github.kotlinmania.awssigv4.TestParsers
+import io.github.kotlinmania.awssigv4.httprequest.canonicalrequest.Header
+import io.github.kotlinmania.awssigv4.httprequest.canonicalrequest.Param
 import io.github.kotlinmania.awssigv4.sign.v4.Builder
 import io.github.kotlinmania.awssigv4.sign.v4.sha256HexString
 import io.github.kotlinmania.http.uri.Uri
+import io.github.kotlinmania.prettyassertions.assertEq
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
@@ -46,11 +48,11 @@ class CanonicalRequestTest {
         val params = signingParams(SigningIdentity.forTests(), settings)
         val creq = CanonicalRequest.from(signable, params).getOrThrow()
 
-        assertEquals(
+        assertEq(
             "host;x-amz-content-sha256;x-amz-date;x-amz-object-attributes",
             creq.values.signedHeaders().toString(),
         )
-        assertEquals(
+        assertEq(
             "Checksum,ObjectSize",
             creq.headerValuesFor("x-amz-object-attributes"),
         )
@@ -73,10 +75,10 @@ class CanonicalRequestTest {
             return creq.headerValuesFor("host")
         }
 
-        assertEquals("localhost", hostHeaderTestSetup("http://localhost:80"))
-        assertEquals("localhost:1234", hostHeaderTestSetup("http://localhost:1234"))
-        assertEquals("localhost", hostHeaderTestSetup("https://localhost:443"))
-        assertEquals("localhost:1234", hostHeaderTestSetup("https://localhost:1234"))
+        assertEq("localhost", hostHeaderTestSetup("http://localhost:80"))
+        assertEq("localhost:1234", hostHeaderTestSetup("http://localhost:1234"))
+        assertEq("localhost", hostHeaderTestSetup("https://localhost:443"))
+        assertEq("localhost:1234", hostHeaderTestSetup("https://localhost:1234"))
     }
 
     @Test
@@ -90,18 +92,18 @@ class CanonicalRequestTest {
             )
         val params = signingParams(SigningIdentity.forTests(), settings)
         val creq = CanonicalRequest.from(signable, params).getOrThrow()
-        assertEquals(
+        assertEq(
             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             creq.values.contentSha256(),
         )
-        assertEquals(
+        assertEq(
             "host;x-amz-content-sha256;x-amz-date",
             creq.values.signedHeaders().asStr(),
         )
 
         params.setPayloadChecksumKind(PayloadChecksumKind.NoHeader)
         val creqNoHeader = CanonicalRequest.from(signable, params).getOrThrow()
-        assertEquals("host;x-amz-date", creqNoHeader.values.signedHeaders().asStr())
+        assertEq("host;x-amz-date", creqNoHeader.values.signedHeaders().asStr())
     }
 
     @Test
@@ -114,7 +116,7 @@ class CanonicalRequestTest {
         val settings = SigningSettings(payloadChecksumKind = PayloadChecksumKind.XAmzSha256)
         val params = signingParams(SigningIdentity.forTests(), settings)
         val creq = CanonicalRequest.from(signable, params).getOrThrow()
-        assertEquals("UNSIGNED-PAYLOAD", creq.values.contentSha256())
+        assertEq("UNSIGNED-PAYLOAD", creq.values.contentSha256())
         assertTrue(creq.toString().endsWith("UNSIGNED-PAYLOAD"))
     }
 
@@ -129,7 +131,7 @@ class CanonicalRequestTest {
         val settings = SigningSettings(payloadChecksumKind = PayloadChecksumKind.XAmzSha256)
         val params = signingParams(SigningIdentity.forTests(), settings)
         val creq = CanonicalRequest.from(signable, params).getOrThrow()
-        assertEquals(payloadHash, creq.values.contentSha256())
+        assertEq(payloadHash, creq.values.contentSha256())
         assertTrue(creq.toString().endsWith(payloadHash))
     }
 
@@ -142,7 +144,7 @@ class CanonicalRequestTest {
                 region = "us-east-1",
                 service = "iam",
             )
-        assertEquals(expected, "$scope\n")
+        assertEq(expected, "$scope\n")
     }
 
     @Test
@@ -154,7 +156,7 @@ class CanonicalRequestTest {
         val encoded = sha256HexString(creq.encodeToByteArray())
 
         val actual = StringToSign.newV4(time, "us-east-1", "service", encoded)
-        assertEquals(expectedSts, actual.toString())
+        assertEq(expectedSts, actual.toString())
     }
 
     @Test
@@ -163,7 +165,7 @@ class CanonicalRequestTest {
         val creq = test.canonicalRequest(SignatureLocation.Headers)
         val expected = "816cd5b414d056048ba4f7c5386d6e0533120fb1fcfa93762cf0fc39e2cf19e0"
         val actual = sha256HexString(creq.encodeToByteArray())
-        assertEquals(expected, actual)
+        assertEq(expected, actual)
     }
 
     @Test
@@ -174,7 +176,7 @@ class CanonicalRequestTest {
         val creq = CanonicalRequest.from(signable, params).getOrThrow()
 
         val expected = test.canonicalRequest(SignatureLocation.Headers)
-        assertEquals(expected, creq.toString())
+        assertEq(expected, creq.toString())
     }
 
     @Test
@@ -185,7 +187,7 @@ class CanonicalRequestTest {
         val creq = CanonicalRequest.from(signable, params).getOrThrow()
 
         val expected = test.canonicalRequest(SignatureLocation.Headers)
-        assertEquals(expected, creq.toString())
+        assertEq(expected, creq.toString())
     }
 
     @Test
@@ -196,7 +198,7 @@ class CanonicalRequestTest {
         val signable = TestRequest.fromHttpRequest(httpReq, ByteArray(0)).toSignableRequest()
         val params = signingParams(SigningIdentity.forTests(), SigningSettings.default())
         val creq = CanonicalRequest.from(signable, params).getOrThrow()
-        assertEquals(
+        assertEq(
             "k=&list-type=2&prefix=~objprefix&single=&unreserved=-_.~",
             creq.params,
         )
@@ -219,7 +221,7 @@ class CanonicalRequestTest {
         val expected =
             "list-type=2&prefix=%20%21%22%23%24%25%26%27%28%29%2A%2B%2C-.%2F0123456789%3A%3B%3C%3D%3E%3F%40" +
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ%5B%5C%5D%5E_%60abcdefghijklmnopqrstuvwxyz%7B%7C%7D~"
-        assertEquals(expected, creq.params)
+        assertEq(expected, creq.params)
     }
 
     @Test
@@ -230,22 +232,22 @@ class CanonicalRequestTest {
         val params = signingParams(SigningIdentity.forTestsWithSessionToken(), settings)
 
         val creq = CanonicalRequest.from(signable, params).getOrThrow()
-        assertEquals(
+        assertEq(
             "host;x-amz-date;x-amz-security-token",
             creq.values.signedHeaders().asStr(),
         )
-        assertEquals(
+        assertEq(
             "notarealsessiontoken",
             creq.headers.getByName("x-amz-security-token"),
         )
 
         params.setSessionTokenMode(SessionTokenMode.Exclude)
         val creqExcluded = CanonicalRequest.from(signable, params).getOrThrow()
-        assertEquals(
+        assertEq(
             "notarealsessiontoken",
             creqExcluded.headers.getByName("x-amz-security-token"),
         )
-        assertEquals("host;x-amz-date", creqExcluded.values.signedHeaders().asStr())
+        assertEq("host;x-amz-date", creqExcluded.values.signedHeaders().asStr())
     }
 
     @Test
@@ -270,7 +272,7 @@ class CanonicalRequestTest {
         val canonical = CanonicalRequest.from(signable, params).getOrThrow()
 
         val values = checkNotNull(canonical.values.asHeaders())
-        assertEquals(
+        assertEq(
             "content-length;content-type;host;x-amz-date;x-amz-user-agent",
             values.signedHeaders.asStr(),
         )
@@ -302,7 +304,7 @@ class CanonicalRequestTest {
         val canonical = CanonicalRequest.from(signable, params).getOrThrow()
 
         val values = checkNotNull(canonical.values.intoQueryParams())
-        assertEquals(
+        assertEq(
             "content-length;content-type;host",
             values.signedHeaders.asStr(),
         )
@@ -338,25 +340,25 @@ class CanonicalRequestTest {
             val params = signingParams(SigningIdentity.forTests(), settings)
             val canonical = CanonicalRequest.from(signable, params).getOrThrow()
             val values = checkNotNull(canonical.values.intoQueryParams())
-            assertEquals("content-length;content-type;host", values.signedHeaders.asStr())
+            assertEq("content-length;content-type;host", values.signedHeaders.asStr())
         }
     }
 
     @Test
     fun testTrimAllHandlesSpacesCorrectly() {
-        assertEquals("don't touch me", trimAll("don't touch me"))
-        assertEquals("trim left", trimAll("   trim left"))
-        assertEquals("trim right", trimAll("trim right "))
-        assertEquals("trim both", trimAll("   trim both  "))
-        assertEquals("", trimAll(" "))
-        assertEquals("", trimAll("  "))
-        assertEquals("a b", trimAll(" a   b "))
-        assertEquals("Some example text", trimAll("  Some  example   text  "))
+        assertEq("don't touch me", trimAll("don't touch me"))
+        assertEq("trim left", trimAll("   trim left"))
+        assertEq("trim right", trimAll("trim right "))
+        assertEq("trim both", trimAll("   trim both  "))
+        assertEq("", trimAll(" "))
+        assertEq("", trimAll("  "))
+        assertEq("a b", trimAll(" a   b "))
+        assertEq("Some example text", trimAll("  Some  example   text  "))
     }
 
     @Test
     fun testTrimAllIgnoresOtherFormsOfWhitespace() {
-        assertEquals(
+        assertEq(
             "\t\u00A0Some\u00A0 example \u00A0text\u00A0\n",
             trimAll("\t\u00A0Some\u00A0     example   \u00A0text\u00A0\n"),
         )
@@ -364,7 +366,7 @@ class CanonicalRequestTest {
 
     @Test
     fun trimSpacesWorksOnSingleCharacters() {
-        assertEquals("2", trimAll("2"))
+        assertEq("2", trimAll("2"))
     }
 
     @Test
@@ -379,7 +381,7 @@ class CanonicalRequestTest {
     fun testNormalizeHeaderValueWorksOnValidHeaderValue() {
         val inputs = listOf("", "simple", "  padded  value ", "\twith-tab", "bad\u007Fdel", "bad\nnewline", "テスト")
         for (v in inputs) {
-            assertEquals(ValidatedHeaderValue.fromStr(v).isOk(), normalizeHeaderValue(v).isOk())
+            assertEq(ValidatedHeaderValue.fromStr(v).isOk(), normalizeHeaderValue(v).isOk())
         }
     }
 
@@ -387,7 +389,24 @@ class CanonicalRequestTest {
     fun testTrimAllDoesNothingWhenThereAreNoSpaces() {
         val inputs = listOf("", "abc", "123-456_789", "\t\u00A0nospace\n", "テスト")
         for (s in inputs) {
-            assertEquals(s, trimAll(s))
+            assertEq(s, trimAll(s))
         }
+    }
+
+    @Test
+    fun testSigV4aConstantsAndStringToSign() {
+        assertEq("x-amz-region-set", Header.X_AMZ_REGION_SET)
+        assertEq("X-Amz-Region-Set", Param.X_AMZ_REGION_SET)
+
+        val time = TestParsers.parseDateTime("20150830T123600Z")
+        val encoded = "816cd5b414d056048ba4f7c5386d6e0533120fb1fcfa93762cf0fc39e2cf19e0"
+        val actual = StringToSign.newV4a(time, "us-east-1,us-west-2", "service", encoded)
+        assertEq(
+            "AWS4-ECDSA-P256-SHA256\n" +
+                "20150830T123600Z\n" +
+                "20150830/service/aws4_request\n" +
+                encoded,
+            actual.toString(),
+        )
     }
 }
