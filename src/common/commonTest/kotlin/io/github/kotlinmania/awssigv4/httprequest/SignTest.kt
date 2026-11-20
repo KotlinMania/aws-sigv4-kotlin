@@ -8,8 +8,8 @@ package io.github.kotlinmania.awssigv4.httprequest
 
 import io.github.kotlinmania.awssigv4.SigningIdentity
 import io.github.kotlinmania.awssigv4.TestParsers
+import io.github.kotlinmania.prettyassertions.assertEq
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.time.Instant
 import io.github.kotlinmania.awssigv4.sign.v4.SigningParams as V4SigningParams
 
@@ -29,7 +29,7 @@ class SignTest {
         val original = test.request()
         val signable = original.toSignableRequest()
         val out = sign(signable, params).getOrThrow()
-        assertEquals(
+        assertEq(
             "57d157672191bac40bae387e48bbe14b15303c001fdbb01f4abf295dccb09705",
             out.signature(),
         )
@@ -60,7 +60,7 @@ class SignTest {
         val original = TestRequest.fromHttpRequest(originalHttp, ByteArray(0))
         val signable = original.toSignableRequest()
         val out = sign(signable, params).getOrThrow()
-        assertEquals(
+        assertEq(
             "55e16b31f9bde5fd04f9d3b780dd2b5e5f11a5219001f91a8ca9ec83eaf1618f",
             out.signature(),
         )
@@ -105,11 +105,11 @@ class SignTest {
         val outWithoutSessionToken = sign(original.toSignableRequest(), params).getOrThrow()
         val outWithSessionTokenButExcluded = sign(original.toSignableRequest(), params).getOrThrow()
 
-        assertEquals(
+        assertEq(
             "ab32de057edf094958d178b3c91f3c8d5c296d526b11da991cd5773d09cea560",
             outWithSessionTokenButExcluded.signature(),
         )
-        assertEquals(
+        assertEq(
             outWithSessionTokenButExcluded.signature(),
             outWithoutSessionToken.signature(),
         )
@@ -153,7 +153,7 @@ class SignTest {
         val original = TestRequest.fromHttpRequest(originalHttp, ByteArray(0))
         val signable = original.toSignableRequest()
         val out = sign(signable, params).getOrThrow()
-        assertEquals(
+        assertEq(
             "244f2a0db34c97a528f22715fe01b2417b7750c8a95c7fc104a3c48d81d84c08",
             out.signature(),
         )
@@ -215,8 +215,8 @@ class SignTest {
         val request = TestHttpRequest.build(uriStr = "https://some-endpoint.some-region.amazonaws.com")
         request.applyInstructions(instructions)
 
-        assertEquals("foo", request.headers.getByName("some-header"))
-        assertEquals("bar", request.headers.getByName("some-other-header"))
+        assertEq("foo", request.headers.getByName("some-header"))
+        assertEq("bar", request.headers.getByName("some-other-header"))
     }
 
     @Test
@@ -231,7 +231,7 @@ class SignTest {
         val request = TestHttpRequest.build(uriStr = "https://some-endpoint.some-region.amazonaws.com/some/path")
         request.applyInstructions(instructions)
 
-        assertEquals(
+        assertEq(
             "/some/path?some-param=f%26o%3Fo&some-other-param%3F=bar",
             checkNotNull(request.uri.pathAndQuery()).toString(),
         )
@@ -247,7 +247,7 @@ class SignTest {
         val instructions = SigningInstructions(emptyList(), params)
 
         val updated = instructions.applyToUriString("https://some-endpoint.some-region.amazonaws.com/some/path")
-        assertEquals(
+        assertEq(
             "https://some-endpoint.some-region.amazonaws.com/some/path?some-param=f%26o%3Fo&some-other-param%3F=bar",
             updated,
         )
@@ -256,18 +256,18 @@ class SignTest {
     @Test
     fun testDebugSignableBody() {
         val bytesBody = SignableBody.bytes("hello signable body".encodeToByteArray())
-        assertEquals(
+        assertEq(
             "Bytes(\"** REDACTED **. To print 19 bytes of raw data, set environment variable `LOG_SIGNABLE_BODY=true`\")",
             bytesBody.toString(),
         )
-        assertEquals(
+        assertEq(
             "Bytes([104, 101, 108, 108, 111, 32, 115, 105, 103, 110, 97, 98, 108, 101, 32, 98, 111, 100, 121])",
             bytesBody.debugString(true),
         )
 
-        assertEquals("UnsignedPayload", SignableBody.unsignedPayload().toString())
-        assertEquals("Precomputed(\"precomputed\")", SignableBody.precomputed("precomputed").toString())
-        assertEquals("StreamingUnsignedPayloadTrailer", SignableBody.streamingUnsignedPayloadTrailer().toString())
+        assertEq("UnsignedPayload", SignableBody.unsignedPayload().toString())
+        assertEq("Precomputed(\"precomputed\")", SignableBody.precomputed("precomputed").toString())
+        assertEq("StreamingUnsignedPayloadTrailer", SignableBody.streamingUnsignedPayloadTrailer().toString())
     }
 
     // SigV4 test suite

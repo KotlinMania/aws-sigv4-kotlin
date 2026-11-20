@@ -12,6 +12,7 @@ import io.github.kotlinmania.awssigv4.sign.v4.calculateSignature
 import io.github.kotlinmania.awssigv4.sign.v4.generateSigningKey
 import io.github.kotlinmania.awssigv4.sign.v4.sha256HexString
 import io.github.kotlinmania.http.uri.Uri
+import io.github.kotlinmania.tracing.trace
 
 /** Named HTTP header pair used to construct a [SignableRequest]. */
 data class SignableHeader(
@@ -319,8 +320,9 @@ class SignResult internal constructor(
 fun sign(
     request: SignableRequest,
     params: SigningParams,
-): SignResult =
-    when (params.settings().signatureLocation) {
+): SignResult {
+    trace("signing request", "request" to request, "params" to params)
+    return when (params.settings().signatureLocation) {
         SignatureLocation.Headers -> {
             val headerOut = calculateSigningHeaders(request, params)
             if (headerOut.error != null) {
@@ -350,6 +352,7 @@ fun sign(
             }
         }
     }
+}
 
 private class CalculatedQueryResult(
     val params: List<QueryParam>?,
@@ -380,6 +383,7 @@ private fun calculateSigningParams(
     val stringToSign = StringToSign.newV4(v4.time, v4.region, v4.name, encodedCreq).toString()
     val signingKey = generateSigningKey(creds.secretAccessKey(), v4.time, v4.region, v4.name)
     val signature = calculateSignature(signingKey, stringToSign.encodeToByteArray())
+    trace("calculated signing parameters", "canonical_request" to creq.toString(), "string_to_sign" to stringToSign)
 
     val values = checkNotNull(creq.values.intoQueryParams()) { "signing with query" }
     val signingParams = ArrayList<QueryParam>(7)
@@ -422,6 +426,7 @@ private fun calculateSigningHeaders(
     val creq = checkNotNull(creqResult.value)
     // Step 2: Create string to sign.
     val encodedCreq = sha256HexString(creq.toString().encodeToByteArray())
+    trace("canonical_request", "canonical_request" to creq.toString())
     val headers = ArrayList<Header>(4)
 
     val v4 = params.v4Params

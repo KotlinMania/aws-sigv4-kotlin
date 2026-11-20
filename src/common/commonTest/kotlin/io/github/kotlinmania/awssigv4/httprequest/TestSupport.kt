@@ -12,10 +12,12 @@ import io.github.kotlinmania.awssigv4.sign.v4.sha256HexString
 import io.github.kotlinmania.http.Method
 import io.github.kotlinmania.http.header.HeaderName
 import io.github.kotlinmania.http.uri.Uri
+import io.github.kotlinmania.serdejson.fromStr
 import io.github.kotlinmania.time.OffsetDateTime
 import io.github.kotlinmania.time.formatdescription.wellknown.Rfc3339
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 import io.github.kotlinmania.awssigv4.sign.v4.SigningParams as V4SigningParams
@@ -162,6 +164,70 @@ internal data class TestContext(
                 settings = settings,
             )
         return SigningParams.v4(v4)
+    }
+}
+
+internal data class TestContextCreds(
+    val accessKeyId: String,
+    val secretAccessKey: String,
+    val token: String? = null,
+)
+
+internal class TestContextBuilder(
+    private val credentials: TestContextCreds,
+    private val expirationInSeconds: Long,
+    private val normalize: Boolean,
+    private val region: String,
+    private val service: String,
+    private val timestamp: String,
+    private val omitSessionToken: Boolean = false,
+    private val signBody: Boolean = true,
+) {
+    fun build(): TestContext {
+        val creds =
+            Credentials.fromKeys(
+                credentials.accessKeyId,
+                credentials.secretAccessKey,
+                credentials.token,
+            )
+        return TestContext(
+            identity = SigningIdentity.fromCredentials(creds),
+            expirationInSeconds = expirationInSeconds,
+            normalize = normalize,
+            region = region,
+            service = service,
+            timestamp = timestamp,
+            omitSessionToken = omitSessionToken,
+            signBody = signBody,
+        )
+    }
+
+    companion object {
+        fun fromJson(json: String): TestContextBuilder {
+            val root = fromStr(json).getOrThrow()
+            val credsObj = checkNotNull(root.get("credentials")) { "missing credentials" }
+            val accessKeyId =
+                checkNotNull(credsObj.get("access_key_id")?.asStr()) { "missing access_key_id" }
+            val secretAccessKey =
+                checkNotNull(credsObj.get("secret_access_key")?.asStr()) { "missing secret_access_key" }
+            val creds =
+                TestContextCreds(
+                    accessKeyId = accessKeyId,
+                    secretAccessKey = secretAccessKey,
+                    token = credsObj.get("token")?.asStr(),
+                )
+            val expU64 = checkNotNull(root.get("expiration_in_seconds")?.asU64()) { "missing expiration_in_seconds" }
+            return TestContextBuilder(
+                credentials = creds,
+                expirationInSeconds = expU64.toLong(),
+                normalize = checkNotNull(root.get("normalize")?.asBool()) { "missing normalize" },
+                region = checkNotNull(root.get("region")?.asStr()) { "missing region" },
+                service = checkNotNull(root.get("service")?.asStr()) { "missing service" },
+                timestamp = checkNotNull(root.get("timestamp")?.asStr()) { "missing timestamp" },
+                omitSessionToken = root.get("omit_session_token")?.asBool() ?: false,
+                signBody = root.get("sign_body")?.asBool() ?: true,
+            )
+        }
     }
 }
 
@@ -391,5 +457,54 @@ class TestSupportTest {
         assertEquals("https://example.amazonaws.com/", parsed.uri)
         assertEquals(listOf("X-Amz-Date" to "20150830T123600Z"), parsed.headers)
         assertEquals("blah blah", checkNotNull(parsed.body.asSignableBody().bytesOrNull()).decodeToString())
+    }
+
+    @Test
+    fun testContextBuilderFromJson() {
+        val defaultJson =
+            """
+            {
+              "credentials": {
+                "access_key_id": "AKIDEXAMPLE",
+                "secret_access_key": "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY"
+              },
+              "expiration_in_seconds": 3600,
+              "normalize": true,
+              "region": "us-east-1",
+              "service": "service",
+              "timestamp": "2015-08-30T12:36:00Z"
+            }
+            """.trimIndent()
+        val defaultCtx = TestContextBuilder.fromJson(defaultJson).build()
+        assertEquals(3600L, defaultCtx.expirationInSeconds)
+        assertTrue(defaultCtx.normalize)
+        assertEquals("us-east-1", defaultCtx.region)
+        assertEquals("service", defaultCtx.service)
+        assertEquals("2015-08-30T12:36:00Z", defaultCtx.timestamp)
+        assertFalse(defaultCtx.omitSessionToken)
+        assertTrue(defaultCtx.signBody)
+        assertEquals("AKIDEXAMPLE", defaultCtx.identity.credentials()?.accessKeyId())
+
+        val explicitJson =
+            """
+            {
+              "credentials": {
+                "access_key_id": "AKIDEXAMPLE",
+                "secret_access_key": "SECRET",
+                "token": "SESSION123"
+              },
+              "expiration_in_seconds": 900,
+              "normalize": false,
+              "region": "us-west-2",
+              "service": "s3",
+              "timestamp": "2015-08-30T12:36:00Z",
+              "omit_session_token": true,
+              "sign_body": false
+            }
+            """.trimIndent()
+        val explicitCtx = TestContextBuilder.fromJson(explicitJson).build()
+        assertEquals("SESSION123", explicitCtx.identity.credentials()?.sessionToken())
+        assertTrue(explicitCtx.omitSessionToken)
+        assertFalse(explicitCtx.signBody)
     }
 }
